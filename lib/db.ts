@@ -45,6 +45,7 @@ export async function initDatabase() {
       token TEXT UNIQUE NOT NULL,
       senderName TEXT NOT NULL,
       recipientEmail TEXT NOT NULL,
+      subject TEXT NOT NULL,
       originalFileName TEXT NOT NULL,
       fileSize INTEGER NOT NULL,
       mimeType TEXT NOT NULL,
@@ -72,6 +73,7 @@ export interface Transfer {
   token: string;
   senderName: string;
   recipientEmail: string;
+  subject: string;
   originalFileName: string;
   fileSize: number;
   mimeType: string;

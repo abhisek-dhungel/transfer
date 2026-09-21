@@ -4,8 +4,8 @@ export default function Footer() {
     <footer className="border-t border-gray-100 bg-white mt-24">
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <p className="font-bold text-gray-900">TechSastra <span className="text-blue-700">Send</span></p>
-          <p className="text-sm text-gray-500 mt-0.5">Send files. Simply.</p>
+          <p className="font-bold text-gray-900">TechSastra <span className="text-blue-700">Transfer</span></p>
+          <p className="text-sm text-gray-500 mt-0.5">Transfer files. Simply.</p>
         </div>
         <nav className="flex gap-5 text-sm text-gray-500">
           <Link href="/privacy" className="hover:text-gray-900 transition-colors">Privacy</Link>

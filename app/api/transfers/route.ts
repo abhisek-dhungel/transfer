@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request', details: parse.error.flatten() }, { status: 400 });
   }
 
-  const { senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource } = parse.data;
+  const { senderName, recipientEmail, subject, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource } = parse.data;
 
   if (fileSize > MAX_FILE_SIZE_BYTES) {
     return NextResponse.json({ error: 'File exceeds the 100 MB limit.' }, { status: 413 });
@@ -42,9 +42,9 @@ export async function POST(request: Request) {
   let transferId: number;
   try {
     const result = await db.execute({
-      sql: `INSERT INTO transfers (token, senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, status, expiresAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
-      args: [token, senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, expiresAt.toISOString()],
+      sql: `INSERT INTO transfers (token, senderName, recipientEmail, subject, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, status, expiresAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+      args: [token, senderName, recipientEmail, subject, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, expiresAt.toISOString()],
     });
     transferId = Number(result.lastInsertRowid);
   } catch (e) {
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
     await sendTransferEmail({
       recipientEmail,
       senderName,
+      subject,
       fileName: originalFileName,
       fileSizeMb: (fileSize / (1024 * 1024)).toFixed(2),
       downloadUrl,

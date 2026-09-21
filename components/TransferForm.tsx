@@ -30,6 +30,7 @@ type Step = 'idle' | 'uploading' | 'creating' | 'emailing' | 'done' | 'error';
 export default function TransferForm() {
   const [senderName, setSenderName] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
+  const [subject, setSubject] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [fileSizeError, setFileSizeError] = useState('');
@@ -44,7 +45,7 @@ export default function TransferForm() {
   const router = useRouter();
 
   const emailValid = validateEmail(recipientEmail);
-  const canSubmit = senderName.trim().length > 0 && emailValid && file !== null && !fileSizeError && step === 'idle';
+  const canSubmit = senderName.trim().length > 0 && emailValid && subject.trim().length > 0 && file !== null && !fileSizeError && step === 'idle';
 
   const handleFile = (selected: File | null) => {
     if (!selected) return;
@@ -110,6 +111,7 @@ export default function TransferForm() {
         body: JSON.stringify({
           senderName,
           recipientEmail,
+          subject,
           originalFileName: file.name,
           fileSize: file.size,
           mimeType: file.type || 'application/octet-stream',
@@ -141,7 +143,7 @@ export default function TransferForm() {
   };
 
   const reset = () => {
-    setSenderName(''); setRecipientEmail(''); setEmailTouched(false);
+    setSenderName(''); setRecipientEmail(''); setSubject(''); setEmailTouched(false);
     setFile(null); setFileSizeError(''); setUploadProgress(0);
     setStep('idle'); setErrorMsg(''); setSuccessData(null);
   };
@@ -221,6 +223,16 @@ export default function TransferForm() {
         {emailTouched && !emailValid && recipientEmail && (
           <p className="text-xs text-red-500 mt-1">Enter a valid email address.</p>
         )}
+      </div>
+
+      {/* Subject */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="subject">Subject</label>
+        <input
+          id="subject" type="text" placeholder="File transfer from John Doe"
+          value={subject} onChange={e => setSubject(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-gray-900 text-sm transition-colors bg-white"
+        />
       </div>
 
       {/* File upload */}

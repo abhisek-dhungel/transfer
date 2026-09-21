@@ -8,6 +8,7 @@ export const uploadSignatureSchema = z.object({
 export const transferCreateSchema = z.object({
   senderName: z.string().min(1),
   recipientEmail: z.string().email(),
+  subject: z.string().min(1),
   originalFileName: z.string().min(1),
   fileSize: z.number().int().positive(),
   mimeType: z.string().min(1),

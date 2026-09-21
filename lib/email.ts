@@ -19,6 +19,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://send.techsastra.com';
 interface SendTransferEmailParams {
   recipientEmail: string;
   senderName: string;
+  subject: string;
   fileName: string;
   fileSizeMb: string;
   downloadUrl: string;
@@ -32,6 +33,7 @@ function formatDate(date: Date) {
 export async function sendTransferEmail({
   recipientEmail,
   senderName,
+  subject,
   fileName,
   fileSizeMb,
   downloadUrl,
@@ -65,10 +67,11 @@ export async function sendTransferEmail({
 <body>
   <div class="container">
     <div class="header">
-      <h1>TechSastra Send</h1>
+      <h1>TechSastra Transfer</h1>
     </div>
     <div class="body">
-      <p><strong>${senderName}</strong> sent you a file via TechSastra Send.</p>
+      <p><strong>${senderName}</strong> sent you a file via TechSastra Transfer.</p>
+      <p style="font-size:14px;color:#6b7280;margin-top:8px;"><strong>Subject:</strong> ${subject}</p>
       <div class="file-card">
         <div class="icon">📁</div>
         <div class="info">
@@ -81,14 +84,15 @@ export async function sendTransferEmail({
       <p style="font-size:14px;color:#6b7280;">If you weren't expecting this file, you can safely ignore this email.</p>
     </div>
     <div class="footer">
-      Powered by <a href="${appUrl}" style="color:#1D4ED8;text-decoration:none;">TechSastra Send</a>
+      Powered by <a href="${appUrl}" style="color:#1D4ED8;text-decoration:none;">TechSastra Transfer</a>
     </div>
   </div>
 </body>
 </html>`;
 
-  const text = `${senderName} sent you a file via TechSastra Send.
+  const text = `${senderName} sent you a file via TechSastra Transfer.
 
+Subject: ${subject}
 File: ${fileName} (${fileSizeMb} MB)
 
 Download it here: ${downloadUrl}
@@ -97,12 +101,12 @@ This link expires on ${expiryDisplay}.
 
 If you weren't expecting this file, you can safely ignore this email.
 
-Powered by TechSastra Send — ${appUrl}`;
+Powered by TechSastra Transfer — ${appUrl}`;
 
   await getResend().emails.send({
     from,
     to: recipientEmail,
-    subject: `${senderName} sent you a file`,
+    subject: subject,
     html,
     text,
   });

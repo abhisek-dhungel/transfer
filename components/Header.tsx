@@ -11,7 +11,7 @@ export default function Header() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 15a4 4 0 004 4h10a4 4 0 001.38-7.758A5 5 0 0012 5a5 5 0 00-4.9 4.005A4 4 0 003 15z"/>
             </svg>
           </span>
-          <span className="text-lg font-bold text-gray-900">TechSastra <span className="text-blue-700">Send</span></span>
+          <span className="text-lg font-bold text-gray-900">TechSastra <span className="text-blue-700">Transfer</span></span>
         </Link>
         <nav className="hidden md:flex items-center gap-6 text-sm text-gray-500">
           <Link href="#how-it-works" className="hover:text-gray-900 transition-colors">How it works</Link>
