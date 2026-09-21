@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Transfer {
+  id                 Int      @id @default(autoincrement())
+  token              String   @unique @db.VarChar(64)
+  senderName         String
+  recipientEmail     String
+  originalFileName   String
+  fileSize           Int
+  mimeType           String
+  cloudinaryPublicId String
+  cloudinaryResource String
+  cloudinarySecureUrl String?
+  status             TransferStatus @default(PENDING)
+  downloadCount      Int @default(0)
+  expiresAt          DateTime
+  createdAt          DateTime @default(now())
+  downloadedAt       DateTime?
+  deletedAt          DateTime?
+
+  @@index([token])
+  @@index([recipientEmail])
+  @@index([expiresAt])
+}
+
+enum TransferStatus {
+  PENDING
+  SENT
+  FAILED
+}
