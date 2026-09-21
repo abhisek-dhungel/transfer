@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+import db from '@/lib/db';
 import { sendTransferEmail } from '@/lib/email';
 import { generateToken } from '@/lib/security';
 import { transferCreateSchema } from '@/lib/validation';
@@ -39,11 +39,14 @@ export async function POST(request: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const downloadUrl = `${appUrl}/download/${token}`;
 
-  let transfer;
+  let transferId: number;
   try {
-    transfer = await prisma.transfer.create({
-      data: { token, senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, status: 'PENDING', expiresAt },
+    const result = await db.execute({
+      sql: `INSERT INTO transfers (token, senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, status, expiresAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+      args: [token, senderName, recipientEmail, originalFileName, fileSize, mimeType, cloudinaryPublicId, cloudinaryResource, expiresAt.toISOString()],
     });
+    transferId = Number(result.lastInsertRowid);
   } catch (e) {
     console.error('[/api/transfers] DB error', e);
     return NextResponse.json({ error: 'Failed to create transfer. Please try again.' }, { status: 500 });
@@ -60,14 +63,20 @@ export async function POST(request: Request) {
     });
   } catch (e) {
     console.error('[/api/transfers] Email error', e);
-    await prisma.transfer.update({ where: { id: transfer.id }, data: { status: 'FAILED' } });
+    await db.execute({
+      sql: "UPDATE transfers SET status = 'FAILED' WHERE id = ?",
+      args: [transferId],
+    });
     return NextResponse.json(
       { error: "We couldn't send the email. Your file was uploaded, but the transfer could not be completed. Please try again." },
       { status: 500 }
     );
   }
 
-  await prisma.transfer.update({ where: { id: transfer.id }, data: { status: 'SENT' } });
+  await db.execute({
+    sql: "UPDATE transfers SET status = 'SENT' WHERE id = ?",
+    args: [transferId],
+  });
 
   return NextResponse.json({
     success: true,

@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+import db from '@/lib/db';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -11,7 +11,13 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
   }
 
-  const transfer = await prisma.transfer.findUnique({ where: { token } });
+  const result = await db.execute({
+    sql: 'SELECT * FROM transfers WHERE token = ?',
+    args: [token],
+  });
+
+  const transfer = result.rows[0];
+
   if (!transfer || transfer.deletedAt) {
     return NextResponse.json(
       { error: 'This download link is invalid or no longer available.' },
@@ -19,7 +25,8 @@ export async function GET(
     );
   }
 
-  if (transfer.expiresAt < new Date()) {
+  const expiresAt = new Date(transfer.expiresAt as string);
+  if (expiresAt < new Date()) {
     return NextResponse.json({ error: 'This transfer has expired.' }, { status: 410 });
   }
 
@@ -28,7 +35,7 @@ export async function GET(
     originalFileName: transfer.originalFileName,
     fileSize: transfer.fileSize,
     mimeType: transfer.mimeType,
-    expiresAt: transfer.expiresAt.toISOString(),
+    expiresAt: transfer.expiresAt,
     downloadCount: transfer.downloadCount,
   });
 }

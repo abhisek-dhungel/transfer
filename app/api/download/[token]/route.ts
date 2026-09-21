@@ -1,4 +1,4 @@
-import prisma from '@/lib/db';
+import db from '@/lib/db';
 import { getSignedDownloadUrl } from '@/lib/cloudinary';
 import { checkRateLimit, getIP } from '@/lib/rate-limit';
 import { NextResponse } from 'next/server';
@@ -16,12 +16,19 @@ export async function GET(request: Request, { params }: { params: { token: strin
     return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
   }
 
-  const transfer = await prisma.transfer.findUnique({ where: { token } });
+  const result = await db.execute({
+    sql: 'SELECT * FROM transfers WHERE token = ?',
+    args: [token],
+  });
+
+  const transfer = result.rows[0];
+
   if (!transfer || transfer.deletedAt) {
     return NextResponse.json({ error: 'This download link is invalid or no longer available.' }, { status: 404 });
   }
 
-  if (transfer.expiresAt < new Date()) {
+  const expiresAt = new Date(transfer.expiresAt as string);
+  if (expiresAt < new Date()) {
     return NextResponse.json({ error: 'This transfer has expired.' }, { status: 410 });
   }
 
@@ -30,14 +37,17 @@ export async function GET(request: Request, { params }: { params: { token: strin
   }
 
   // Generate short-lived signed Cloudinary URL (1 hour)
-  const signedUrl = getSignedDownloadUrl(transfer.cloudinaryPublicId, transfer.cloudinaryResource, 3600);
+  const signedUrl = getSignedDownloadUrl(
+    transfer.cloudinaryPublicId as string,
+    transfer.cloudinaryResource as string,
+    3600
+  );
 
-  await prisma.transfer.update({
-    where: { id: transfer.id },
-    data: {
-      downloadCount: { increment: 1 },
-      downloadedAt: transfer.downloadedAt ?? new Date(),
-    },
+  // Update download count and downloadedAt
+  const downloadedAt = transfer.downloadedAt ? transfer.downloadedAt : new Date().toISOString();
+  await db.execute({
+    sql: 'UPDATE transfers SET downloadCount = downloadCount + 1, downloadedAt = ? WHERE id = ?',
+    args: [downloadedAt, transfer.id],
   });
 
   return NextResponse.redirect(signedUrl, { status: 302 });
